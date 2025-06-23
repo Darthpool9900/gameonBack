@@ -1,72 +1,83 @@
 package com.gameonDatabse.gameOn.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
 public class UserPosts {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private Long id;
 
-    private long authorId;
+    private Long authorId;
+
     private String mediaContent;
-    private String postTitle;
-    private String postDescription;
+
+    @Temporal(TemporalType.TIMESTAMP)  // importante para mapear corretamente no banco
     private Date postDate;
 
-    // Getters
-    public long getId() {
+    private String postTitle;
+
+    @Column(length = 1000)
+    private String postDescription;
+
+    private String tag;
+
+    // Getters e setters
+
+    public Long getId() {
         return id;
     }
 
-    public long getAuthorId() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getAuthorId() {
         return authorId;
+    }
+
+    public void setAuthorId(Long authorId) {
+        this.authorId = authorId;
     }
 
     public String getMediaContent() {
         return mediaContent;
     }
 
-    public String getPostTitle() {
-        return postTitle;
-    }
-
-    public String getPostDescription() {
-        return postDescription;
+    public void setMediaContent(String mediaContent) {
+        this.mediaContent = mediaContent;
     }
 
     public Date getPostDate() {
         return postDate;
     }
 
-    // Setters
-    public void setId(long id) {
-        this.id = id;
+    public void setPostDate(Date postDate) {
+        this.postDate = postDate;
     }
 
-    public void setAuthorId(long authorId) {
-        this.authorId = authorId;
-    }
-
-    public void setMediaContent(String mediaContent) {
-        this.mediaContent = mediaContent;
+    public String getPostTitle() {
+        return postTitle;
     }
 
     public void setPostTitle(String postTitle) {
         this.postTitle = postTitle;
     }
 
+    public String getPostDescription() {
+        return postDescription;
+    }
+
     public void setPostDescription(String postDescription) {
         this.postDescription = postDescription;
     }
 
-    public void setPostDate(Date postDate) {
-        this.postDate = postDate;
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }

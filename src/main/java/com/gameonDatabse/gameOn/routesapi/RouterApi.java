@@ -1,5 +1,7 @@
 package com.gameonDatabse.gameOn.routesapi;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gameonDatabse.gameOn.models.UserModel;
 import com.gameonDatabse.gameOn.models.UserPosts;
 import com.gameonDatabse.gameOn.models.PostComments;
@@ -66,27 +68,47 @@ public class RouterApi {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+    @GetMapping("/get_post/{id}")
+    public ResponseEntity<UserPosts> getPostById(@PathVariable Long id) {
+        Optional<UserPosts> postOptional = userPostsRepository.findById(id);
+        if (postOptional.isPresent()) {
+            return ResponseEntity.ok(postOptional.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 
     @PostMapping(value = "/make_posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserPosts> createPost(
+    public ResponseEntity<?> createPost(
             @RequestPart("postData") String postDataJson,
-            @RequestPart("file") MultipartFile file) throws Exception {
+            @RequestPart("file") MultipartFile file) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        UserPosts postData = objectMapper.readValue(postDataJson, UserPosts.class);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        String uploadDir = "Uploads/";
-        Files.createDirectories(Paths.get(uploadDir));
+            UserPosts postData = objectMapper.readValue(postDataJson, UserPosts.class);
 
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + filename);
-        Files.write(filePath, file.getBytes());
+            String uploadDir = "Uploads/";
+            Files.createDirectories(Paths.get(uploadDir));
 
-        postData.setMediaContent(filePath.toString());
-        UserPosts savedPost = userPostsRepository.save(postData);
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = Paths.get(uploadDir + filename);
+            Files.write(filePath, file.getBytes());
 
-        return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
+            postData.setMediaContent(filePath.toString());
+            UserPosts savedPost = userPostsRepository.save(postData);
+
+            return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            e.printStackTrace();  // Garanta que exceção seja impressa
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao criar post: " + e.getMessage());
+        }
     }
+
 
     @GetMapping("/get_posts")
     public ResponseEntity<List<UserPosts>> getAllPosts() {
